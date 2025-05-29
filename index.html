@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sayı Tahmin Oyunu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+    }
+    .badge {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+      padding: 5px;
+      border-radius: 5px;
+      background-color: #333;
+      color: white;
+      transition: background-color 0.3s;
+    }
+    .badge.earned {
+      background-color: #2ecc71;
+    }
+    #badgeList {
+      max-width: 300px;
+      margin-top: 20px;
+    }
+    @media (max-width: 600px) {
+      input, button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Sayı Tahmin Oyunu</h1>
+  <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" />
+  <button onclick="login()">Giriş Yap</button>
+  <div id="game" style="display:none;">
+    <p id="message"></p>
+    <input type="number" id="guessInput" placeholder="Tahminini Gir" />
+    <button onclick="makeGuess()">Tahmin Et</button>
+    <button onclick="passGuess()">Pas Geç</button>
+    <p>Skor: <span id="score">0</span> | Altın: <span id="gold">0</span></p>
+    <select id="difficulty">
+      <option value="easy">Kolay</option>
+      <option value="medium">Orta</option>
+      <option value="hard">Zor</option>
+      <option value="impossible">İmkansız</option>
+    </select>
+  </div>
+  <div id="badgeList"></div>
+  <script>
+    let username = "";
+    let score = 0;
+    let gold = 0;
+    let numberToGuess = 0;
+    let maxNumber = 10;
+    let badges = {};
+
+    function login() {
+      username = document.getElementById("usernameInput").value;
+      if (username) {
+        document.getElementById("game").style.display = "block";
+        if (username === "erenkral") activateAdmin();
+        generateNumber();
+        logMessage("Hoş geldin, " + username);
+      }
+    }
+
+    function activateAdmin() {
+      logMessage("🎉 Gizli yönetici mod aktif!");
+      score += 50;
+      gold += 100;
+      unlockBadge("Yönetici Girişi");
+      unlockBadge("Kod Ustası");
+      unlockBadge("Süper Başlangıç");
+      document.body.style.backgroundColor = "#121212";
+      document.body.style.color = "white";
+    }
+
+    function generateNumber() {
+      const level = document.getElementById("difficulty").value;
+      maxNumber = level === "easy" ? 10 : level === "medium" ? 50 : level === "hard" ? 100 : 500;
+      numberToGuess = Math.floor(Math.random() * maxNumber) + 1;
+    }
+
+    function makeGuess() {
+      const guess = parseInt(document.getElementById("guessInput").value);
+      if (isNaN(guess)) return;
+      if (guess === numberToGuess) {
+        logMessage("🎯 Doğru tahmin!");
+        score += 10;
+        gold += 5;
+        unlockBadge("Doğru Tahmin");
+        updateStats();
+        generateNumber();
+      } else {
+        const fark = Math.abs(guess - numberToGuess);
+        const ipucu = fark <= 3 ? "🔥 Çok sıcak" : fark <= 10 ? "🌡️ Sıcak" : fark <= 20 ? "❄️ Soğuk" : "🧊 Çok soğuk";
+        logMessage("Yanlış tahmin. " + ipucu);
+        score--;
+        updateStats();
+      }
+    }
+
+    function passGuess() {
+      logMessage("➡️ Pas geçildi. Yeni sayı geldi.");
+      score -= 2;
+      updateStats();
+      generateNumber();
+    }
+
+    function unlockBadge(name) {
+      if (!badges[name]) {
+        badges[name] = true;
+        logMessage(`🏅 Rozet kazandın: ${name}`);
+        updateBadges();
+      }
+    }
+
+    function updateStats() {
+      document.getElementById("score").textContent = score;
+      document.getElementById("gold").textContent = gold;
+    }
+
+    function logMessage(msg) {
+      document.getElementById("message").textContent = msg;
+    }
+
+    function updateBadges() {
+      const list = document.getElementById("badgeList");
+      list.innerHTML = "<h3>🎖️ Rozetler:</h3>";
+      for (const [name, earned] of Object.entries(badges)) {
+        const badge = document.createElement("div");
+        badge.className = "badge" + (earned ? " earned" : "");
+        badge.textContent = name;
+        list.appendChild(badge);
+      }
+    }
+  </script>
+</body>
+</html>
