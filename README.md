@@ -1,0 +1,1 @@
+# okul-i-in-tah-min-oy-unu
